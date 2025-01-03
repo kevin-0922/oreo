@@ -23,13 +23,23 @@ import {
 function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { dispatch } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const data = await getProductById(id);
-      setProduct(data);
+      try {
+        setLoading(true);
+        const data = await getProductById(id);
+        setProduct(data);
+      } catch (error) {
+        setError('無法載入商品資訊');
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProduct();
   }, [id]);
@@ -47,7 +57,9 @@ function ProductDetail() {
     });
   };
 
-  if (!product) return <div>載入中...</div>;
+  if (loading) return <div>載入中...</div>;
+  if (error) return <div>{error}</div>;
+  if (!product) return <div>找不到商品</div>;
 
   return (
     <Container sx={{ py: 4 }}>
@@ -98,17 +110,17 @@ function ProductDetail() {
             商品評價
           </Typography>
           <List>
-            {[1, 2, 3].map((review) => (
-              <React.Fragment key={review}>
+            {product.reviews?.map((review) => (
+              <React.Fragment key={review.id}>
                 <ListItem alignItems="flex-start">
-                  <Avatar sx={{ mr: 2 }}>U</Avatar>
+                  <Avatar sx={{ mr: 2 }}>{review.username[0]}</Avatar>
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography component="span" variant="subtitle1" sx={{ mr: 1 }}>
-                          用戶 {review}
+                          {review.username}
                         </Typography>
-                        <Rating value={5} readOnly size="small" />
+                        <Rating value={review.rating} readOnly size="small" />
                       </Box>
                     }
                     secondary={
@@ -117,7 +129,7 @@ function ProductDetail() {
                         variant="body2"
                         color="text.primary"
                       >
-                        很好的商品，品質優良...
+                        {review.comment}
                       </Typography>
                     }
                   />

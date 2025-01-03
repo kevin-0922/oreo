@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect , useState} from 'react';
+
 import {
   Container,
   Typography,
@@ -16,6 +17,8 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import axios from 'axios';
+
 
 function TabPanel({ children, value, index }) {
   return (
@@ -24,9 +27,58 @@ function TabPanel({ children, value, index }) {
     </div>
   );
 }
+const axiosInstance = axios.create({
+  baseURL: process.env.BASE_URL,
+  withCredentials: true,
+});
 
-function Account() {
-  const [tabValue, setTabValue] = React.useState(0);
+const Account = () => {
+  const data={
+      name: "哈哈"  ,
+      phone: "0912-345-678",
+      email: "example@mail.com",
+      address: "台北市信義區信義路五段7號",
+    }
+
+  const orderData = [{
+    id: "1234567890",
+    date: "2024/03/20",
+    shipDate: "2024/03/20",
+    amount: "NT$ 999",
+    status: "已送達",
+  },{
+    id: "1234567890",
+    date: "2024/03/20",
+    shipDate: "2024/03/20",
+    amount: "NT$ 999",
+    status: "已送達",
+  }]
+  const [tabValue, setTabValue] = useState(0);
+  const [user, setUser] = useState(data);
+  const [order, setOrder] = useState(orderData);
+
+useEffect(() => {
+  const checkAuth = async () => {
+    // try{
+    //   const response = await axiosInstance.get('/api/auth/check',{withCredentials: true});
+    //   setUser(response.data.user);
+    // }catch(error){
+    //   console.error('Authentication check failed');
+    //   setUser(data);
+    // }
+    setUser(data);
+  }
+  const getOrder = async () => {
+    try{
+      const response = await axiosInstance.get('/api/order/list',{withCredentials: true});
+      setOrder(response.data.order);
+    }catch(error){
+      console.error('Order list failed');
+    }
+  }
+  checkAuth();
+  getOrder();
+  }, []);
 
   return (
     <Container sx={{ py: 4 }}>
@@ -42,34 +94,33 @@ function Account() {
         >
           <Tab label="個人資料" />
           <Tab label="訂單記錄" />
-          <Tab label="付款方式" />
         </Tabs>
 
-        <TabPanel value={tabValue} index={0}>
-          <Grid container spacing={3}>
+        <TabPanel value={tabValue} index={0} >
+          <Grid container spacing={3} sx={{ px: 4 }}>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="姓名" defaultValue="王小明" />
+              <TextField fullWidth label="姓名" defaultValue={user.name} disabled />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="電話" defaultValue="0912-345-678" />
+              <TextField fullWidth label="電話" defaultValue={user.phone} disabled />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="電子郵件"
-                defaultValue="example@mail.com"
+                defaultValue={user.email}
+                disabled
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="地址"
-                defaultValue="台北市信義區信義路五段7號"
+                defaultValue={user.address}
+                disabled
               />
             </Grid>
-            <Grid item xs={12}>
-              <Button variant="contained">儲存變更</Button>
-            </Grid>
+            
           </Grid>
         </TabPanel>
 
@@ -79,22 +130,20 @@ function Account() {
               <TableHead>
                 <TableRow>
                   <TableCell>訂單編號</TableCell>
-                  <TableCell>日期</TableCell>
+                  <TableCell>訂購日期</TableCell>
+                  <TableCell>出貨日期</TableCell>
                   <TableCell>金額</TableCell>
                   <TableCell>狀態</TableCell>
-                  <TableCell>操作</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {[1, 2, 3].map((order) => (
-                  <TableRow key={order}>
-                    <TableCell>#{order}2345</TableCell>
-                    <TableCell>2024/03/20</TableCell>
-                    <TableCell>NT$ 999</TableCell>
-                    <TableCell>已送達</TableCell>
-                    <TableCell>
-                      <Button size="small">查看詳情</Button>
-                    </TableCell>
+                {order.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id}</TableCell>
+                    <TableCell>{order.date}</TableCell>
+                    <TableCell>{order.shipDate}</TableCell>
+                    <TableCell>{order.amount}</TableCell>
+                    <TableCell>{order.status}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -102,19 +151,7 @@ function Account() {
           </TableContainer>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                已儲存的付款方式
-              </Typography>
-              {/* 付款方式列表 */}
-            </Grid>
-            <Grid item xs={12}>
-              <Button variant="contained">新增付款方式</Button>
-            </Grid>
-          </Grid>
-        </TabPanel>
+ 
       </Paper>
     </Container>
   );

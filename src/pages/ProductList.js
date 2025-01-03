@@ -19,17 +19,14 @@ import {
   FormGroup,
   FormControlLabel,
 } from '@mui/material';
+import axios from 'axios';
 
 function ProductList() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const navigate = useNavigate();
-
-  const categories = [
+  const axiosInstance = axios.create({
+    baseURL: process.env.BASE_URL,
+    withCredentials: true,
+  });
+  const data = [
     '電子產品',
     '服飾',
     '家居',
@@ -40,21 +37,37 @@ function ProductList() {
     '玩具'
   ];
 
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState(data);
+
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosInstance.get('/api/categories',{withCredentials: true});
+      setCategories(response.data.categories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+  fetchCategories();
+}, []);
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const { products, total } = await getProducts(page);
-        let filteredProducts = products;
+        // 獲取商品列表
+        const data = await getProducts(page);
+        let filteredProducts = data.products;
         
-        // 根據選中的分類過濾商品
-        if (selectedCategories.length > 0) {
-          filteredProducts = products.filter(product => 
-            selectedCategories.includes(product.category)
-          );
-        }
-
-        // 如果有搜尋關鍵字，進一步過濾
+        // 在前端進行搜尋過濾
         if (searchQuery) {
           filteredProducts = filteredProducts.filter(product =>
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,9 +75,16 @@ function ProductList() {
             product.category.toLowerCase().includes(searchQuery.toLowerCase())
           );
         }
-
+        
+        // 根據選中的分類過濾商品
+        if (selectedCategories.length > 0) {
+          filteredProducts = filteredProducts.filter(product => 
+            selectedCategories.includes(product.category)
+          );
+        }
+        
         setProducts(filteredProducts);
-        setTotalPages(Math.ceil(total / 20));
+        setTotalPages(Math.ceil(data.total / 20));
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
