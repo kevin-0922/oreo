@@ -63,9 +63,9 @@ function Home() {
           },
         }}
       >
-        <Container sx={{ position: 'relative', zIndex: 1 }}>
+        <Container sx={{ position: 'relative', zIndex: 1, py: 8 }}>
           <Typography variant="h2" gutterBottom>
-            歡迎光臨我們的商店
+            歡迎光臨我們的Oreo樂趣屋
           </Typography>
           <Typography variant="h5">
             發現最新的商品和優惠

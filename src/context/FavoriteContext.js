@@ -1,53 +1,49 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { getFavorites } from '../services/productService';
 
 const FavoriteContext = createContext();
 
+export const useFavorite = () => {
+  return useContext(FavoriteContext);
+};
+
 export function FavoriteProvider({ children }) {
   const [favorites, setFavorites] = useState([]);
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
-  // 從 localStorage 讀取收藏
+  // 當用戶登入狀態改變時，重新獲取收藏清單
   useEffect(() => {
-    if (user) {
-      const savedFavorites = localStorage.getItem(`favorites_${user.id}`);
-      if (savedFavorites) {
-        setFavorites(JSON.parse(savedFavorites));
-      }
-    } else {
-      setFavorites([]);
-    }
-  }, [user]);
-
-  // 保存收藏到 localStorage
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`favorites_${user.id}`, JSON.stringify(favorites));
-    }
-  }, [favorites, user]);
-
-  const toggleFavorite = (product) => {
-    setFavorites(prevFavorites => {
-      const exists = prevFavorites.some(fav => fav.id === product.id);
-      if (exists) {
-        return prevFavorites.filter(fav => fav.id !== product.id);
+    const fetchFavorites = async () => {
+      if (isAuthenticated) {
+        try {
+          setLoading(true);
+          const data = await getFavorites();
+          setFavorites(data.favorites);
+        } catch (error) {
+          console.error('Error fetching favorites:', error);
+        } finally {
+          setLoading(false);
+        }
       } else {
-        return [...prevFavorites, product];
+        setFavorites([]);
+        setLoading(false);
       }
-    });
+    };
+
+    fetchFavorites();
+  }, [isAuthenticated]);
+
+  const value = {
+    favorites,
+    setFavorites,
+    loading
   };
 
   return (
-    <FavoriteContext.Provider value={{ favorites, toggleFavorite }}>
+    <FavoriteContext.Provider value={value}>
       {children}
     </FavoriteContext.Provider>
   );
-}
-
-export function useFavorite() {
-  const context = useContext(FavoriteContext);
-  if (!context) {
-    throw new Error('useFavorite must be used within a FavoriteProvider');
-  }
-  return context;
 } 

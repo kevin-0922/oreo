@@ -36,7 +36,7 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="sticky" bgcolor='white'>
+    <AppBar position="sticky" sx={{bgcolor:'white', color:'primary.main'}}>
       <Toolbar >
         <Typography
           variant="h6"
@@ -44,7 +44,7 @@ function Navbar() {
           to="/"
           sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
         >
-          AI商城
+          Oreo樂趣屋
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button color="inherit" component={RouterLink} to="/products">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { getProductById } from '../services/productService';
+import { getProductById, addToCart, addProductReview, addToFavorite, removeFromFavorite } from '../services/productService';
 import {
   Container,
   Grid,
@@ -19,6 +19,8 @@ import {
   ListItemText,
   Avatar,
 } from '@mui/material';
+import { useFavorite } from '../context/FavoriteContext';
+import { useAuth } from '../context/AuthContext';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -27,6 +29,12 @@ function ProductDetail() {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { dispatch } = useCart();
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const { favorites, setFavorites } = useFavorite();
+  const { isAuthenticated } = useAuth();
+  const isFavorite = favorites.some(item => item.id === product?.id);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,17 +52,57 @@ function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
-    dispatch({
-      type: 'ADD_TO_CART',
-      payload: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: quantity,
-      },
-    });
+  const handleAddToCart = async () => {
+    try {
+      setSubmitLoading(true);  // 設定載入狀態，防止重複提交
+      await addToCart(product.id, quantity);  // 發送加入購物車請求到後端
+      alert('商品已加入購物車');  // 顯示成功訊息
+    } catch (error) {
+      console.error('加入購物車失敗:', error);  // 在控制台顯示錯誤詳情
+      alert('加入購物車失敗，請稍後再試');  // 顯示錯誤訊息給用戶
+    } finally {
+      setSubmitLoading(false);  // 重設載入狀態
+    }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();  // 防止表單預設提交行為
+    try {
+      setSubmitLoading(true);  // 設定載入狀態，防止重複提交
+      const response = await addProductReview(product.id, reviewRating, reviewComment);  // 發送評論請求到後端
+      const updatedProduct = await getProductById(id);  // 重新獲取商品資訊以更新評論列表
+      setProduct(updatedProduct);  // 更新商品資訊狀態
+      setReviewComment('');  // 清空評論輸入框
+      setReviewRating(5);  // 重置評分為 5 星
+      alert(response.message);  // 顯示成功訊息
+    } catch (error) {
+      console.error('評論送出失敗:', error);  // 在控制台顯示錯誤詳情
+      alert(error.message);  // 顯示錯誤訊息給用戶
+    } finally {
+      setSubmitLoading(false);  // 重設載入狀態
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!isAuthenticated) {
+      alert('請先登入');
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await removeFromFavorite(product.id);
+        setFavorites(prev => prev.filter(item => item.id !== product.id));
+        alert('商品已從收藏移除');
+      } else {
+        await addToFavorite(product.id);
+        setFavorites(prev => [...prev, product]);
+        alert('商品已加入收藏');
+      }
+    } catch (error) {
+      console.error('收藏操作失敗:', error);
+      alert('操作失敗，請稍後再試');
+    }
   };
 
   if (loading) return <div>載入中...</div>;
@@ -101,6 +149,47 @@ function ProductDetail() {
               onClick={handleAddToCart}
             >
               加入購物車
+            </Button>
+          </Box>
+
+          <Button 
+            variant={isFavorite ? "contained" : "outlined"}
+            color={isFavorite ? "primary" : "default"}
+            onClick={handleFavorite}
+            sx={{ m: 0}}
+          >
+            {isFavorite ? '取消收藏' : '加入收藏'}
+          </Button>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box component="form" onSubmit={handleSubmitReview} sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              新增評論
+            </Typography>
+            <Rating
+              value={reviewRating}
+              onChange={(event, newValue) => {
+                setReviewRating(newValue);
+              }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              label="評論內容"
+              required
+              sx={{ mb: 2 }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={submitLoading}
+            >
+              {submitLoading ? '送出中...' : '送出評論'}
             </Button>
           </Box>
         </Grid>
