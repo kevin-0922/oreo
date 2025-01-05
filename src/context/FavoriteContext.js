@@ -1,44 +1,65 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { getFavorites } from '../services/productService';
 
 const FavoriteContext = createContext();
 
 export const useFavorite = () => {
-  return useContext(FavoriteContext);
+  const context = useContext(FavoriteContext);
+  if (!context) {
+    throw new Error('useFavorite must be used within a FavoriteProvider');
+  }
+  return context;
 };
 
 export function FavoriteProvider({ children }) {
   const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // 當用戶登入狀態改變時，重新獲取收藏清單
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (isAuthenticated) {
-        try {
-          setLoading(true);
-          const data = await getFavorites();
-          setFavorites(data.favorites);
-        } catch (error) {
-          console.error('Error fetching favorites:', error);
-        } finally {
-          setLoading(false);
-        }
+  const fetchFavorites = useCallback(async () => {
+    if (!isAuthenticated) {
+      setFavorites([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await getFavorites();
+      if (response?.data?.data) {
+        const normalizedFavorites = response.data.data.map(item => ({
+          id: item.id || item.productId,
+          productId: item.productId || item.id,
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          description: item.description
+        }));
+        setFavorites(normalizedFavorites);
       } else {
         setFavorites([]);
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      setFavorites([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
-    fetchFavorites();
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchFavorites();
+    } else {
+      setFavorites([]);
+    }
   }, [isAuthenticated]);
 
   const value = {
     favorites,
     setFavorites,
-    loading
+    loading,
+    refetchFavorites: fetchFavorites
   };
 
   return (

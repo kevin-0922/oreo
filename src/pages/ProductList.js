@@ -34,10 +34,12 @@ function ProductList() {
 useEffect(() => {
   const fetchCategories = async () => {
     try {
-      const response = await axiosInstance.get('/api/categories',{withCredentials: true});
-      setCategories(response.data.categories);
+      const response = await axiosInstance.get('/api/categories');
+      const categoryNames = response.data.data.map(category => category.name);
+      setCategories(categoryNames);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
   fetchCategories();
@@ -47,7 +49,6 @@ useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // 獲取商品列表
         const data = await getProducts(page);
         let filteredProducts = data.products;
         
@@ -66,8 +67,11 @@ useEffect(() => {
             selectedCategories.includes(product.category)
           );
         }
+
+        // 只顯示前四個商品
+        const limitedProducts = filteredProducts.slice(0, 100);
         
-        setProducts(filteredProducts);
+        setProducts(limitedProducts);
         setTotalPages(Math.ceil(data.total / 20));
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -111,7 +115,7 @@ useEffect(() => {
               商品分類
             </Typography>
             <FormGroup>
-              {categories.map((category) => (
+              {Array.isArray(categories) && categories.map((category) => (
                 <FormControlLabel
                   key={category}
                   control={
@@ -137,14 +141,14 @@ useEffect(() => {
             sx={{ mb: 3 }}
           />
           
-          {products.length === 0 ? (
+          {!Array.isArray(products) || products.length === 0 ? (
             <Typography variant="h6" align="center" sx={{ mt: 4 }}>
               沒有找到相關商品
             </Typography>
           ) : (
             <>
               <Grid container spacing={3}>
-                {products.map((product) => (
+                {Array.isArray(products) && products.map((product) => (
                   <Grid item key={product.id} xs={12} sm={6} md={4}>
                     <Card>
                       <CardMedia

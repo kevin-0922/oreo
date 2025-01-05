@@ -36,7 +36,7 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="sticky" sx={{bgcolor:'white', color:'primary.main'}}>
+    <AppBar position="sticky" >
       <Toolbar >
         <Typography
           variant="h6"

@@ -101,7 +101,7 @@ function Home() {
                   </Card>
                 </Grid>
               ))
-            : featuredProducts.map((product) => (
+            : featuredProducts.slice(0, 4).map((product) => (
                 <Grid item key={product.id} xs={12} sm={6} md={3}>
                   <Card>
                     <Box sx={{ position: 'relative' }}>
@@ -121,11 +121,7 @@ function Home() {
                           }}
                           onClick={() => toggleFavorite(product)}
                         >
-                          {favorites.some(fav => fav.id === product.id) ? (
-                            <FavoriteIcon color="error" />
-                          ) : (
-                            <FavoriteBorderIcon />
-                          )}
+                          
                         </IconButton>
                       )}
                     </Box>

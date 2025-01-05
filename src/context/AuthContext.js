@@ -19,17 +19,21 @@ const axiosInstance = axios.create({
         const response = await axiosInstance.get('/api/auth/check', { 
           withCredentials: true 
         });
-        console.log(response);
-        setUser(response.data.data.name);
+        if (response.data.status === "SUCCESS") {
+          setUser(response.data.data);
+        } else {
+          setUser(null);
+        }
       } catch (error) {
-        console.error('Authentication check failed');
+        console.error('Authentication check failed:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, [axiosInstance]);
+  }, []);
 
   // 登入
   const login = async (email, password) => {
@@ -70,7 +74,13 @@ const axiosInstance = axios.create({
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout,
+      isAuthenticated: !!user
+    }}>
       {children}
     </AuthContext.Provider>
   );

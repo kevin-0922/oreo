@@ -1,4 +1,5 @@
-import React, { useEffect , useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 import {
   Container,
@@ -29,56 +30,36 @@ function TabPanel({ children, value, index }) {
 }
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  
+  withCredentials: true
 });
 
+
 const Account = () => {
-  const data={
-      name: "哈哈"  ,
-      phone: "0912-345-678",
-      email: "example@mail.com",
-      address: "台北市信義區信義路五段7號",
-    }
-
-  const orderData = [{
-    id: "1234567890",
-    date: "2024/03/20",
-    shipDate: "2024/03/20",
-    amount: "NT$ 999",
-    status: "已送達",
-  },{
-    id: "1234567890",
-    date: "2024/03/20",
-    shipDate: "2024/03/20",
-    amount: "NT$ 999",
-    status: "已送達",
-  }]
+  const { user } = useAuth();
   const [tabValue, setTabValue] = useState(0);
-  const [user, setUser] = useState(data);
-  const [order, setOrder] = useState(orderData);
+  const [order, setOrder] = useState([]);
 
-useEffect(() => {
-  const checkAuth = async () => {
-    // try{
-    //   const response = await axiosInstance.get('/api/auth/check',{withCredentials: true});
-    //   setUser(response.data.user);
-    // }catch(error){
-    //   console.error('Authentication check failed');
-    //   setUser(data);
-    // }
-    setUser(data);
-  }
-  const getOrder = async () => {
-    try{
-      const response = await axiosInstance.get('/api/order/list',{withCredentials: true});
-      setOrder(response.data.order);
-    }catch(error){
-      console.error('Order list failed');
+  useEffect(() => {
+    const getOrder = async () => {
+      console.log("開始取得訂單");
+      try {
+        const response = await axiosInstance.get('/api/order');
+        console.log(response.data);
+        if (response.data.status === "SUCCESS" && Array.isArray(response.data.order)) {
+          setOrder(response.data.order);
+        } else {
+          setOrder([]);
+        }
+      } catch (error) {
+        console.error('Order list failed:', error);
+        setOrder([]);
+      }
+    };
+
+    if (user) {
+      getOrder();
     }
-  }
-  checkAuth();
-  getOrder();
-  }, []);
+  }, [user]);
 
   return (
     <Container sx={{ py: 4 }}>
@@ -99,16 +80,26 @@ useEffect(() => {
         <TabPanel value={tabValue} index={0} >
           <Grid container spacing={3} sx={{ px: 4 }}>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="姓名" defaultValue={user.name} disabled />
+              <TextField 
+                fullWidth 
+                label="姓名" 
+                value={user?.name || ''}
+                disabled 
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="電話" defaultValue={user.phone} disabled />
+              <TextField 
+                fullWidth 
+                label="電話" 
+                value={user?.phone || ''} 
+                disabled 
+              />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="電子郵件"
-                defaultValue={user.email}
+                value={user?.email || ''}
                 disabled
               />
             </Grid>
@@ -116,11 +107,10 @@ useEffect(() => {
               <TextField
                 fullWidth
                 label="地址"
-                defaultValue={user.address}
+                value={user?.address || ''}
                 disabled
               />
             </Grid>
-            
           </Grid>
         </TabPanel>
 
@@ -137,15 +127,23 @@ useEffect(() => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {order.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.id}</TableCell>
-                    <TableCell>{order.date}</TableCell>
-                    <TableCell>{order.shipDate}</TableCell>
-                    <TableCell>{order.amount}</TableCell>
-                    <TableCell>{order.status}</TableCell>
+                {Array.isArray(order) && order.length > 0 ? (
+                  order.map((orderItem) => (
+                    <TableRow key={orderItem.id}>
+                      <TableCell>{orderItem.id}</TableCell>
+                      <TableCell>{orderItem.date}</TableCell>
+                      <TableCell>{orderItem.shipDate}</TableCell>
+                      <TableCell>{orderItem.amount}</TableCell>
+                      <TableCell>{orderItem.status}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      尚無訂單記錄
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>

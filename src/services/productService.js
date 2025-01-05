@@ -1,23 +1,6 @@
 import axiosInstance from '../utils/axiosInstance';
 
-const data = 
-  {
-    id: 1,
-    name: "商品名稱",
-    price: 3999,
-    description: "商品描述",
-    image: "https://api.example.com/images/product1.jpg",
-    category: "電子產品",
-    reviews: [
-      {
-        id: 1,
-        userId: 1,
-        username: "用戶1",
-        rating: 5,
-        comment: "很好的商品"
-      }
-    ]
-  }
+
 
 export const getProducts = async () => {
   try {
@@ -49,10 +32,11 @@ export const getProductById = async (id) => {
 
 // 加入購物車
 export const addToCart = async (productId, quantity) => {
+
   try {
-    const response = await axiosInstance.post('/api/cart/add', {
-      productId,
-      quantity
+    const response = await axiosInstance.post('/api/cart', {
+      "productId": productId,
+      "amount": quantity
     });
     return response.data;
   } catch (error) {
@@ -64,10 +48,10 @@ export const addToCart = async (productId, quantity) => {
 // 新增商品評論
 export const addProductReview = async (productId, rating, comment) => {
   try {
-    const response = await axiosInstance.post('/api/products/reviews', {
-      productId,
-      rating,
-      comment
+    const response = await axiosInstance.post('/api/products/review', {
+      "productId": productId,
+      "rating": rating,
+      "comment": comment
     });
     return response.data;
   } catch (error) {
@@ -79,7 +63,7 @@ export const addProductReview = async (productId, rating, comment) => {
 // 新增收藏商品
 export const addToFavorite = async (productId) => {
   try {
-    const response = await axiosInstance.post('/api/favorites/add', {
+    const response = await axiosInstance.post(`/api/favorites/${productId}`, {
       productId
     });
     return response.data;
@@ -91,11 +75,17 @@ export const addToFavorite = async (productId) => {
 
 // 移除收藏商品
 export const removeFromFavorite = async (productId) => {
+  if (!productId) {
+    throw new Error('Product ID is required');
+  }
+  
   try {
-    const response = await axiosInstance.delete(`/api/favorites/remove/${productId}`);
+    const response = await axiosInstance.delete(`/api/favorites/${productId}`, {
+      withCredentials: true
+    });
     return response.data;
   } catch (error) {
-    console.error('Error removing from favorites:', error);
+    console.error('Error removing favorite:', error);
     throw error;
   }
 };
@@ -104,7 +94,8 @@ export const removeFromFavorite = async (productId) => {
 export const getFavorites = async () => {
   try {
     const response = await axiosInstance.get('/api/favorites');
-    return response.data;
+    console.log('Favorites response:', response.data);
+    return response;
   } catch (error) {
     console.error('Error fetching favorites:', error);
     throw error;
