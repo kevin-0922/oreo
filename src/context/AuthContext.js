@@ -8,23 +8,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
 const axiosInstance = axios.create({
-  baseURL: process.env.BASE_URL,
+  baseURL:process.env.REACT_APP_API_URL,
   withCredentials: true,
 });
 
   // 初始檢查登入狀態
   useEffect(() => {
     const checkAuth = async () => {
-      // try {
-      //   const response = await axiosInstance.get('/api/auth/check', { 
-      //     withCredentials: true 
-      //   });
-      //   setUser(response.data.user.name);
-      // } catch (error) {
-      //   console.error('Authentication check failed');
-      // } finally {
-      //   setLoading(false);
-      // }
+      try {
+        const response = await axiosInstance.get('/api/auth/check', { 
+          withCredentials: true 
+        });
+        setUser(response.data.user.name);
+      } catch (error) {
+        console.error('Authentication check failed');
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
@@ -32,34 +32,35 @@ const axiosInstance = axios.create({
 
   // 登入
   const login = async (email, password) => {
-    // const data = {
-    //   "email": email,
-    //   "password": password
-    // }
-    // try {
-    //   console.log(data);
-    //   const response = await axiosInstance.post('/api/auth/login', data
-    //   );
-    //   setUser(response.data.user);
-    //   alert('登入成功');
-    // } catch (error) {
-    //   throw new Error(error.response?.data?.message || '登入失敗');
-    // }
-    setUser(email);
+    const data = {
+      "email": email,
+      "password": password
+    }
+    console.log('API URL:', process.env.REACT_APP_API_URL);
+    try {
+      console.log(data);
+      const response = await axiosInstance.post('/api/auth/login', data
+      );
+      setUser(response.data.user);
+      alert('登入成功');
+    } catch (error) {
+      throw new Error(error.response?.data?.message || '登入失敗');
+    }
+
   };
 
   // 登出
   const logout = async () => {
-    // try {
-    //   await axiosInstance.post('/api/auth/logout', {}, { 
-    //     withCredentials: true 
-    //   });
-    //   setUser(null);
-    // } catch (error) {
-    //   console.error('Logout failed');
-    //   alert('登出失敗');
-    // }
-    setUser(null);
+    try {
+      await axiosInstance.post('/api/auth/logout', {}, { 
+        withCredentials: true 
+      });
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed');
+      alert('登出失敗');
+    }
+
   };
 
   return (

@@ -39,14 +39,14 @@ export const getProducts = async (page = 1, limit = 20) => {
 
 
 export const getProductById = async (id) => {
-  // try {
-  //   const response = await axiosInstance.get(`/api/products/${id}`);
-  //   return data;
-  // } catch (error) {
-  //   console.error('Error fetching product:', error);
-  //   throw error;
-  // }
-  return data;
+  try {
+    const response = await axiosInstance.get(`/api/products/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    throw error;
+  }
+
 };
 
 // 加入購物車

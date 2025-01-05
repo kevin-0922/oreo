@@ -23,19 +23,10 @@ import axios from 'axios';
 
 function ProductList() {
   const axiosInstance = axios.create({
-    baseURL: process.env.BASE_URL,
+    baseURL: process.env.REACT_APP_API_URL,
     withCredentials: true,
   });
-  const data = [
-    '電子產品',
-    '服飾',
-    '家居',
-    '食品',
-    '運動',
-    '美妝',
-    '書籍',
-    '玩具'
-  ];
+
 
 
   const [products, setProducts] = useState([]);
@@ -45,7 +36,7 @@ function ProductList() {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const navigate = useNavigate();
-  const [categories, setCategories] = useState(data);
+  const [categories, setCategories] = useState([]);
 
 useEffect(() => {
   const fetchCategories = async () => {

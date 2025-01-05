@@ -28,7 +28,7 @@ function TabPanel({ children, value, index }) {
   );
 }
 const axiosInstance = axios.create({
-  baseURL: process.env.BASE_URL,
+  baseURL: process.env.REACT_APP_API_URL,
   withCredentials: true,
 });
 
