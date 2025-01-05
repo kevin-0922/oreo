@@ -19,16 +19,9 @@ import {
   FormGroup,
   FormControlLabel,
 } from '@mui/material';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 
 function ProductList() {
-  const axiosInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
-    withCredentials: true,
-  });
-
-
-
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

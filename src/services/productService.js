@@ -1,10 +1,4 @@
-import axios from 'axios';
-
-const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true,
-});
-
+import axiosInstance from '../utils/axiosInstance';
 
 const data = 
   {
@@ -25,15 +19,19 @@ const data =
     ]
   }
 
-export const getProducts = async (page = 1, limit = 20) => {
+export const getProducts = async () => {
   try {
-    const response = await axiosInstance.get(`/api/products`, {
-      params: { page, limit }
-    });
-    return response.data;
+    const response = await axiosInstance.get(`/api/products`);
+    return {
+      products: response.data.data || [],
+      total: response.data.data?.length || 0
+    };
   } catch (error) {
     console.error('Error fetching products:', error);
-    throw error;
+    return {
+      products: [],
+      total: 0
+    };
   }
 };
 

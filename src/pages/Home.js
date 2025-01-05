@@ -29,10 +29,11 @@ function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { products } = await getProducts(1, 8);
-        setFeaturedProducts(products);
+        const { products } = await getProducts();
+        setFeaturedProducts(products || []);
       } catch (error) {
         console.error('Error fetching products:', error);
+        setFeaturedProducts([]);
       } finally {
         setLoading(false);
       }
