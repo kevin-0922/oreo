@@ -8,7 +8,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
 const axiosInstance = axios.create({
-  baseURL:process.env.REACT_APP_API_URL
+  baseURL: process.env.REACT_APP_API_URL,
+  withCredentials: true
 });
 
   // 初始檢查登入狀態
@@ -18,7 +19,8 @@ const axiosInstance = axios.create({
         const response = await axiosInstance.get('/api/auth/check', { 
           withCredentials: true 
         });
-        setUser(response.data.user.name);
+        console.log(response);
+        setUser(response.data.data.name);
       } catch (error) {
         console.error('Authentication check failed');
       } finally {
@@ -27,7 +29,7 @@ const axiosInstance = axios.create({
     };
 
     checkAuth();
-  }, []);
+  }, [axiosInstance]);
 
   // 登入
   const login = async (email, password) => {
@@ -35,17 +37,22 @@ const axiosInstance = axios.create({
       "email": email,
       "password": password
     }
+    console.log("開始登入");
     console.log('API URL:', process.env.REACT_APP_API_URL);
     try {
       console.log(data);
-      const response = await axiosInstance.post('/api/auth/login', data
-      );
-      setUser(response.data.user);
-      alert('登入成功');
+      const response = await axiosInstance.post('/api/auth/login', data, {
+        withCredentials: true
+      });
+      if (response.data.status === "SUCCESS") {
+        setUser(response.data.data);
+        alert('登入成功');
+      } else {
+        throw new Error(response.data.message || '登入失敗');
+      }
     } catch (error) {
       throw new Error(error.response?.data?.message || '登入失敗');
     }
-
   };
 
   // 登出
