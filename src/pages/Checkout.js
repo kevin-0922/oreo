@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -21,13 +21,13 @@ import {
   ListItem,
   ListItemText,
   Divider,
-} from '@mui/material';
-import { useCart } from '../context/CartContext';
-import { getCart } from '../services/cartService';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axiosInstance';
+} from "@mui/material";
+import { useCart } from "../context/CartContext";
+import { getCart } from "../services/cartService";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axiosInstance";
 
-const steps = ['運送資訊', '付款方式', '確認訂單'];
+const steps = ["運送資訊", "付款方式", "確認訂單"];
 
 function Checkout() {
   const [activeStep, setActiveStep] = useState(0);
@@ -43,7 +43,7 @@ function Checkout() {
         console.log(response);
         setCartItems(response || []);
       } catch (error) {
-        console.error('Error fetching cart:', error);
+        console.error("Error fetching cart:", error);
       }
     };
     fetchCart();
@@ -51,39 +51,38 @@ function Checkout() {
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + item.price * item.amount, 0);
   };
-  
+
   // 運送資訊表單狀態
   const [shippingInfo, setShippingInfo] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: ''
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
   });
-  
+
   // 付款方式狀態
-  const [paymentMethod, setPaymentMethod] = useState('');
-  
+  const [paymentMethod, setPaymentMethod] = useState("");
+
   // 表單錯誤狀態
   const [errors, setErrors] = useState({});
 
   const { cart = [] } = useCart();
-  
+
   // 計算總金額
-  const shippingFee = 60;  // 運費
-  
+  const shippingFee = 60; // 運費
 
   // 處理運送資訊表單變更
   const handleShippingInfoChange = (e) => {
     const { name, value } = e.target;
-    setShippingInfo(prev => ({
+    setShippingInfo((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // 清除該欄位的錯誤訊息
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -91,11 +90,11 @@ function Checkout() {
   // 驗證運送資訊
   const validateShippingInfo = () => {
     const newErrors = {};
-    if (!shippingInfo.name) newErrors.name = '請輸入姓名';
-    if (!shippingInfo.phone) newErrors.phone = '請輸入電話';
-    if (!shippingInfo.email) newErrors.email = '請輸入電子郵件';
-    if (!shippingInfo.address) newErrors.address = '請輸入地址';
-    
+    if (!shippingInfo.name) newErrors.name = "請輸入姓名";
+    if (!shippingInfo.phone) newErrors.phone = "請輸入電話";
+    if (!shippingInfo.email) newErrors.email = "請輸入電子郵件";
+    if (!shippingInfo.address) newErrors.address = "請輸入地址";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -103,7 +102,7 @@ function Checkout() {
   // 驗證付款方式
   const validatePaymentMethod = () => {
     if (!paymentMethod) {
-      setErrors({ payment: '請選擇付款方式' });
+      setErrors({ payment: "請選擇付款方式" });
       return false;
     }
     return true;
@@ -114,31 +113,43 @@ function Checkout() {
     try {
       setSubmitLoading(true);
       const orderData = {
-        "shippingInfo": shippingInfo,
-        "paymentMethod": paymentMethod,
-        "items": cartItems,
-        "totalAmount": calculateTotal() + shippingFee
+        // "shippingInfo": shippingInfo,
+        // "paymentMethod": paymentMethod,
+        // "items": cartItems,
+        // "totalAmount": calculateTotal() + shippingFee
+        name: shippingInfo.name,
+        phone: shippingInfo.phone,
+        email: shippingInfo.email,
+        address: shippingInfo.address,
+      };
+
+      const orderDataALL = {
+        shippingInfo: shippingInfo,
+        paymentMethod: paymentMethod,
+        items: cartItems,
+        totalAmount: calculateTotal() + shippingFee,
       };
       console.log(orderData);
 
-      const response = await axiosInstance.post('/api/order/create', orderData);
-      
+      const response = await axiosInstance.post("/api/order/", orderData);
+
       if (response.data.status === "SUCCESS") {
+        alert("訂單建立成功");
         // 清空購物車並導向訂單確認頁面
-        navigate('/order-confirmation', { 
-          state: { 
+        navigate("/order-confirmation", {
+          state: {
             orderId: response.data.orderId,
-            orderDetails: orderData 
-          } 
+            orderDetails: orderDataALL,
+          },
         });
       } else {
-        alert('訂單建立失敗，請稍後再試');
+        alert("訂單建立失敗，請稍後再試");
 
         setSubmitLoading(false);
       }
     } catch (error) {
-      console.error('Error creating order:', error);
-      alert('訂單建立失敗，請稍後再試');
+      console.error("Error creating order:", error);
+      alert("訂單建立失敗，請稍後再試");
       setSubmitLoading(false);
     }
   };
@@ -249,18 +260,12 @@ function Checkout() {
                     value={paymentMethod}
                     onChange={(e) => {
                       setPaymentMethod(e.target.value);
-                      setErrors(prev => ({ ...prev, payment: '' }));
+                      setErrors((prev) => ({ ...prev, payment: "" }));
                     }}
                   >
-                    <FormControlLabel
-                      value="cashOnDelivery"
-                      control={<Radio />}
-                      label="取貨付款"
-                    />
+                    <FormControlLabel value="cashOnDelivery" control={<Radio />} label="取貨付款" />
                   </RadioGroup>
-                  {errors.payment && (
-                    <FormHelperText>{errors.payment}</FormHelperText>
-                  )}
+                  {errors.payment && <FormHelperText>{errors.payment}</FormHelperText>}
                 </FormControl>
               )}
 
@@ -273,13 +278,14 @@ function Checkout() {
                   <Typography>電話：{shippingInfo.phone}</Typography>
                   <Typography>電子郵件：{shippingInfo.email}</Typography>
                   <Typography>地址：{shippingInfo.address}</Typography>
-                  <Typography>付款方式：
-                    {paymentMethod === 'cashOnDelivery' ? '取貨付款' : ''}
+                  <Typography>
+                    付款方式：
+                    {paymentMethod === "cashOnDelivery" ? "取貨付款" : ""}
                   </Typography>
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
                 {activeStep > 0 && (
                   <Button onClick={handleBack} sx={{ mr: 1 }}>
                     上一步
@@ -290,9 +296,11 @@ function Checkout() {
                   onClick={handleNext}
                   disabled={activeStep === steps.length - 1 && submitLoading}
                 >
-                  {activeStep === steps.length - 1 ? (
-                    submitLoading ? '處理中...' : '確認付款'
-                  ) : '下一步'}
+                  {activeStep === steps.length - 1
+                    ? submitLoading
+                      ? "處理中..."
+                      : "確認付款"
+                    : "下一步"}
                 </Button>
               </Box>
             </CardContent>
@@ -315,38 +323,26 @@ function Checkout() {
                         </Typography>
                       }
                     />
-                    <Typography>
-                      NT$ {item.price * item.quantity}
-                    </Typography>
+                    <Typography>NT$ {item.price * item.quantity}</Typography>
                   </ListItem>
                 ))}
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <ListItem sx={{ py: 1 }}>
                   <ListItemText primary="小計" />
-                  <Typography>
-                    NT$ {calculateTotal()}
-                  </Typography>
+                  <Typography>NT$ {calculateTotal()}</Typography>
                 </ListItem>
-                
+
                 <ListItem sx={{ py: 1 }}>
                   <ListItemText primary="運費" />
-                  <Typography>
-                    NT$ {shippingFee}
-                  </Typography>
+                  <Typography>NT$ {shippingFee}</Typography>
                 </ListItem>
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <ListItem sx={{ py: 1 }}>
-                  <ListItemText 
-                    primary={
-                      <Typography variant="h6">
-                        總計
-                      </Typography>
-                    }
-                  />
+                  <ListItemText primary={<Typography variant="h6">總計</Typography>} />
                   <Typography variant="h6" color="primary">
                     NT$ {calculateTotal() + shippingFee}
                   </Typography>
@@ -355,12 +351,9 @@ function Checkout() {
             </CardContent>
           </Card>
         </Grid>
-        </Grid>
+      </Grid>
     </Container>
   );
 }
 
-export default Checkout; 
-
-
-
+export default Checkout;

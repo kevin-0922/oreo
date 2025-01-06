@@ -45,8 +45,9 @@ const Account = () => {
       try {
         const response = await axiosInstance.get('/api/order');
         console.log(response.data);
-        if (response.data.status === "SUCCESS" && Array.isArray(response.data.order)) {
-          setOrder(response.data.order);
+        if (response.data.status === "SUCCESS" && Array.isArray(response.data.data)) {
+          setOrder(response.data.data);
+          console.log(response.data.data);
         } else {
           setOrder([]);
         }
@@ -131,9 +132,9 @@ const Account = () => {
                   order.map((orderItem) => (
                     <TableRow key={orderItem.id}>
                       <TableCell>{orderItem.id}</TableCell>
-                      <TableCell>{orderItem.date}</TableCell>
-                      <TableCell>{orderItem.shipDate}</TableCell>
-                      <TableCell>{orderItem.amount}</TableCell>
+                      <TableCell>{new Date(orderItem.date).toLocaleDateString('zh-TW')}</TableCell>
+                      <TableCell>{orderItem.shipDate?orderItem.shipDate:'準備中'}</TableCell>
+                      <TableCell>{orderItem.totalPrice}</TableCell>
                       <TableCell>{orderItem.status}</TableCell>
                     </TableRow>
                   ))
