@@ -26,12 +26,15 @@ function Cart() {
   const [error, setError] = useState(null);
 
   // 獲取購物車內容
+ 
+  
   useEffect(() => {
     const fetchCart = async () => {
       try {
         setLoading(true);
         const response = await getCart();
-        setCartItems(response.data.items || []);
+        console.log(response);
+        setCartItems(response || []);
       } catch (error) {
         setError('無法載入購物車');
         console.error('Error fetching cart:', error);
@@ -39,11 +42,10 @@ function Cart() {
         setLoading(false);
       }
     };
+    fetchCart();
+  }, []);
+  
 
-    if (isAuthenticated) {
-      fetchCart();
-    }
-  }, [isAuthenticated]);
 
   // 更新商品數量
   const handleUpdateQuantity = async (productId, amount) => {
@@ -66,6 +68,8 @@ function Cart() {
 
   // 移除商品
   const handleRemoveItem = async (productId) => {
+    if(window.confirm('確定要移除商品嗎？')){ 
+    
     try {
       await removeFromCart(productId);
       // 更新本地狀態
@@ -74,7 +78,9 @@ function Cart() {
       alert('移除商品失敗，請稍後再試');
       console.error('Error removing item:', error);
     }
+  }
   };
+
 
   // 計算總金額
   const calculateTotal = () => {

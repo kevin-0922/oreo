@@ -158,7 +158,18 @@ useEffect(() => {
                         alt={product.name}
                       />
                       <CardContent>
-                        <Typography gutterBottom variant="h6">
+                        <Typography 
+                          gutterBottom 
+                          variant="h6" 
+                          sx={{
+                            height: '64px',
+                            overflow: 'hidden',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            mt: 1
+                          }}
+                        >
                           {product.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>

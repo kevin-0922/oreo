@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -23,12 +23,34 @@ import {
   Divider,
 } from '@mui/material';
 import { useCart } from '../context/CartContext';
-
+import { getCart } from '../services/cartService';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
 
 const steps = ['運送資訊', '付款方式', '確認訂單'];
 
 function Checkout() {
   const [activeStep, setActiveStep] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const navigate = useNavigate();
+
+  const [submitLoading, setSubmitLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const response = await getCart();
+        console.log(response);
+        setCartItems(response || []);
+      } catch (error) {
+        console.error('Error fetching cart:', error);
+      }
+    };
+    fetchCart();
+  }, []);
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => total + item.price * item.amount, 0);
+  };
   
   // 運送資訊表單狀態
   const [shippingInfo, setShippingInfo] = useState({
@@ -47,9 +69,8 @@ function Checkout() {
   const { cart = [] } = useCart();
   
   // 計算總金額
-  const subtotal = (cart || []).reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shippingFee = 60;  // 運費
-  const total = subtotal + shippingFee;  // 總計
+  
 
   // 處理運送資訊表單變更
   const handleShippingInfoChange = (e) => {
@@ -88,6 +109,40 @@ function Checkout() {
     return true;
   };
 
+  // 添加確認付款處理函數
+  const handleConfirmPayment = async () => {
+    try {
+      setSubmitLoading(true);
+      const orderData = {
+        "shippingInfo": shippingInfo,
+        "paymentMethod": paymentMethod,
+        "items": cartItems,
+        "totalAmount": calculateTotal() + shippingFee
+      };
+      console.log(orderData);
+
+      const response = await axiosInstance.post('/api/order/create', orderData);
+      
+      if (response.data.status === "SUCCESS") {
+        // 清空購物車並導向訂單確認頁面
+        navigate('/order-confirmation', { 
+          state: { 
+            orderId: response.data.orderId,
+            orderDetails: orderData 
+          } 
+        });
+      } else {
+        alert('訂單建立失敗，請稍後再試');
+
+        setSubmitLoading(false);
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('訂單建立失敗，請稍後再試');
+      setSubmitLoading(false);
+    }
+  };
+
   const handleNext = () => {
     let canProceed = false;
 
@@ -99,9 +154,9 @@ function Checkout() {
         canProceed = validatePaymentMethod();
         break;
       case 2:
-        // 最後確認步驟，可以直接進行
-        canProceed = true;
-        break;
+        // 最後確認步驟，執行確認付款
+        handleConfirmPayment();
+        return; // 直接返回，不執行後續的 setActiveStep
       default:
         break;
     }
@@ -232,9 +287,12 @@ function Checkout() {
                 )}
                 <Button
                   variant="contained"
-                  onClick={activeStep === steps.length - 1 ? undefined : handleNext}
+                  onClick={handleNext}
+                  disabled={activeStep === steps.length - 1 && submitLoading}
                 >
-                  {activeStep === steps.length - 1 ? '確認付款' : '下一步'}
+                  {activeStep === steps.length - 1 ? (
+                    submitLoading ? '處理中...' : '確認付款'
+                  ) : '下一步'}
                 </Button>
               </Box>
             </CardContent>
@@ -268,7 +326,7 @@ function Checkout() {
                 <ListItem sx={{ py: 1 }}>
                   <ListItemText primary="小計" />
                   <Typography>
-                    NT$ {subtotal}
+                    NT$ {calculateTotal()}
                   </Typography>
                 </ListItem>
                 
@@ -290,7 +348,7 @@ function Checkout() {
                     }
                   />
                   <Typography variant="h6" color="primary">
-                    NT$ {total}
+                    NT$ {calculateTotal() + shippingFee}
                   </Typography>
                 </ListItem>
               </List>
@@ -303,3 +361,6 @@ function Checkout() {
 }
 
 export default Checkout; 
+
+
+
