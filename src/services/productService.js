@@ -94,7 +94,7 @@ export const removeFromFavorite = async (productId) => {
 export const getFavorites = async () => {
   try {
     const response = await axiosInstance.get('/api/favorites');
-    console.log('Favorites response:', response.data);
+    //console.log('Favorites response:', response.data);
     return response;
   } catch (error) {
     console.error('Error fetching favorites:', error);

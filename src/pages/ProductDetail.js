@@ -45,7 +45,7 @@ function ProductDetail() {
           getProductById(id),
           isAuthenticated ? getFavorites() : Promise.resolve({ data: { data: [] } })
         ]);
-        
+        console.log(productResponse);
         setProduct(productResponse.data);
         
         if (isAuthenticated) {
@@ -113,7 +113,6 @@ function ProductDetail() {
       // 清空表單
       setReviewComment('');
       setReviewRating(5);
-      
       alert('評論已送出');
     } catch (error) {
       console.error('評論送出失敗:', error);
@@ -214,6 +213,14 @@ function ProductDetail() {
           >
             {isFavorite ? '取消收藏' : '加入收藏'}
           </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom>
+            商品描述
+          </Typography>
+          <Typography variant="body1" paragraph>
+            {product.description}
+          </Typography>
         </Grid>
 
         <Grid item xs={12}>

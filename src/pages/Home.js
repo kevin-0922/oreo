@@ -126,9 +126,20 @@ function Home() {
                       )}
                     </Box>
                     <CardContent>
-                      <Typography gutterBottom variant="h6">
-                        {product.name}
-                      </Typography>
+                    <Typography 
+                          gutterBottom 
+                          variant="h6" 
+                          sx={{
+                            height: '64px',
+                            overflow: 'hidden',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            mt: 1
+                          }}
+                        >
+                          {product.name}
+                        </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         NT$ {product.price}
                       </Typography>
